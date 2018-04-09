@@ -12,9 +12,17 @@ def loadconvmatrix():
     return conv_matrix
 
 def loadgradesfile():
-    with open('students_grades.json') as data_file1:
-        student_grade = json.load(data_file1)
-    return student_grade
+    try:
+        with open('students_grades.json') as data_file:
+            student_grade = json.load(data_file)
+            return student_grade
+    except:
+        file = open('students_grades.json', "w")
+        file.write("{}")
+        file.close()
+        with open('students_grades.json') as data_file:
+            student_grade = json.load(data_file)
+            return student_grade
 
 def askforID():
     ID = str(raw_input("Enter student ID"))
@@ -30,7 +38,12 @@ def insertthegrades(gradesbreakdown, studentID):
     newID = {studentID:{}}
     for key in gradesbreakdown:
         print "The percentage for " + key + "  is  " + str((gradesbreakdown[key])) + "%"
-        newID[studentID][key] = input("What is your Current Grade for " + key + " Please insert -1 if you don't have a grade yet")
+        try:
+            newID[studentID][key] = input("What is your Current Grade for " + key + " Please insert -1 if you don't have a grade yet")
+        except:
+            newID[studentID][key] = input("invaild input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
+        while newID[studentID][key] > 100 or newID[studentID][key] < -1:
+            newID[studentID][key] = input("invaild input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
     return newID
 
 def changethegrades(studentID, student_grades):
@@ -38,7 +51,12 @@ def changethegrades(studentID, student_grades):
         print "your grade for " + str(key) + " is " + str(student_grades[studentID][key])
         x = str(raw_input("Do you want to change your grade type y for yes, n for no"))
         if x == "y":
-            student_grades[studentID][key] = input("What is your Current Grade for: " + key)
+            try:
+                student_grades[studentID][key] = input("What is your Current Grade for: " + key)
+            except:
+                student_grades[studentID][key] = input("invaild input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
+            while student_grades[studentID][key] > 100 or student_grades[studentID][key] < -1:
+                student_grades[studentID][key] = input("invaild input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
     return student_grades
 
 def insertorcheck(checkifIDexist, ID, gradesbreakdown, student_grades):
@@ -71,11 +89,10 @@ def printgradeasletter(convmatrix, Current_Grade):
             print "your grade is " + str(Current_Grade) + " your mark is " + str(convmatrix[x]["mark"])
 
 def main():
-
+    student_grades = loadgradesfile()
     ID = askforID()
     gradesbreakdown = loadgradesbreakdown()
     convmatrix = loadconvmatrix()
-    student_grades =loadgradesfile()
     checkifexist = checkifIDexist(student_grades, ID)
     current_grades = insertorcheck(checkifexist, ID, gradesbreakdown, student_grades)
     saveGrades(student_grades, current_grades, ID)

@@ -68,11 +68,11 @@
       }
     ],
     "grade_breakdown" : {
-      "participation": 5,
-      "assignment1" : 20,
-      "assignment2" : 25,
-      "assignment3" : 25,
-      "assignment4" : 25
+      "In-class labs": 15,
+      "quizzes" : 15,
+      "Assignments" : 20,
+      "Midterm " : 20,
+      "Final Project" : 30
     }
   }
 }

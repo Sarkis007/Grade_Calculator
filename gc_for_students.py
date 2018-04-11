@@ -28,19 +28,34 @@ def askfor_userinfo():
     hashlibpassword = hashlib.sha224(password).hexdigest()
     return ID, name, password, hashlibpassword
 
-def checkifIDexist(student_grades, ID):
+def insertorcheck(ID, gradesbreakdown, student_grades, name, password, hashlibpassword):
     for key in student_grades:
         if ID == key:
-            return 1
-    return 0
+            x = changethegrades(ID, student_grades, name, password)
+            return x
+    y = insertthegrades(gradesbreakdown, ID, name, hashlibpassword)
+    return y
+
+def checknumber(key):
+    try:
+        x = input("What is your Current Grade for " + key + " Please insert -1 if you don't have a grade yet")
+        if x <= 100 and x >= -1:
+            return x
+        else:
+            print "Invalid input"
+            x = checknumber(key)
+            return x
+    except:
+        print "Invalid input"
+        x = checknumber(key)
+        return x
+
 
 def insertthegrades(gradesbreakdown, ID, name, hashlibpassword):
     newID = {ID:{"User":{"name":name, "password":hashlibpassword},"grades":{}}}
     for key in gradesbreakdown:
         print "The percentage for " + key + "  is  " + str((gradesbreakdown[key])) + "%"
-        newID[ID]["grades"][key] = input("What is your Current Grade for " + key + " Please insert -1 if you don't have a grade yet")
-        while newID[ID]["grades"][key] > 100 or newID[ID]["grades"][key] < -1:
-            newID[ID]["grades"][key] = input("invalid input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
+        newID[ID]["grades"][key] = checknumber(key)
     return newID
 
 def changethegrades(ID, student_grades, name, password):
@@ -50,31 +65,13 @@ def changethegrades(ID, student_grades, name, password):
             print "your grade for " + str(key) + " is " + str(student_grades[ID]["grades"][key])
             x = str(raw_input("Do you want to change your grade type y for yes, n for no"))
             if x == "y":
-                try:
-                    student_grades[ID]["grades"][key] = input("What is your Current Grade for: " + key)
-                except:
-                    student_grades[ID]["grades"][key] = input("invaild input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
-                while student_grades[ID]["grades"][key] > 100 or student_grades[ID]["grades"][key] < -1:
-                    student_grades[ID]["grades"][key] = input("invaild input for  " + key + " Please insert a number between 0 and 100, insert -1 if you don't have a grade yet")
+                student_grades[ID]["grades"][key] = checknumber(key)
     else:
         print "you are not authorized"
         newpassword = raw_input("Please enter your Password again")
         changethegrades(ID, student_grades, name, newpassword)
     return student_grades
 
-def insertorcheck(checkifIDexist, ID, gradesbreakdown, student_grades, name, password, hashlibpassword):
-        if checkifIDexist == True:
-            x = changethegrades(ID, student_grades, name, password)
-            return x
-        elif checkifIDexist == False:
-            y = insertthegrades(gradesbreakdown, ID, name, hashlibpassword)
-            return y
-
-def saveGrades(student_grades, current_grades, ID):
-    student_grades[ID] = current_grades[ID]
-    file = open("students_grades.json", "w")
-    file.write(json.dumps(student_grades))
-    file.close()
 
 def finalgrade(gradesbreakdown, current_grades, ID):
     finalgrade = 0
@@ -84,24 +81,29 @@ def finalgrade(gradesbreakdown, current_grades, ID):
             finalgrade = finalgrade + calc_grade
     return finalgrade
 
-def printfinalgrades(convmatrix, fingrade, current_grades, ID, name):
+def printfinalgrades(convmatrix, fingrade, current_grades, ID):
     print "ID:"+ ID
-    print "Name:"+name
+    print "Name:"+ current_grades[ID]["User"]["name"]
     for key in current_grades[ID]["grades"]:
         print "Your grade for " + str(key) + " is " + str(current_grades[ID]["grades"][key])
     for x in range(len(convmatrix)):
         if int(convmatrix[x]["max"]) >= int(fingrade) and int(convmatrix[x]["min"]) <= int(fingrade):
             print "your final grade is " + str(fingrade) + " your mark is " + str(convmatrix[x]["mark"])
 
+def saveGrades(student_grades, current_grades, ID):
+    student_grades[ID] = current_grades[ID]
+    file = open("students_grades.json", "w")
+    file.write(json.dumps(student_grades))
+    file.close()
+
 
 def main():
     student_grades = loadgradesfile()
     ID, name, password, hashlibpassword = askfor_userinfo()
     gradesbreakdown, convmatrix = loadgc_setup()
-    checkifexist = checkifIDexist(student_grades, ID)
-    current_grades = insertorcheck(checkifexist, ID, gradesbreakdown, student_grades, name, password, hashlibpassword)
+    current_grades = insertorcheck(ID, gradesbreakdown, student_grades, name, password, hashlibpassword)
     saveGrades(student_grades, current_grades, ID)
     fingrade = finalgrade(gradesbreakdown, current_grades, ID)
-    printfinalgrades(convmatrix, fingrade, current_grades, ID, name)
+    printfinalgrades(convmatrix, fingrade, current_grades, ID)
 
 main()

@@ -23,17 +23,17 @@ def loadgradesfile():
 
 def askfor_userinfo():
     ID = str(raw_input("Enter student ID"))
-    name = raw_input("Enter your name")
+    username = raw_input("Enter your username")
     password = raw_input("Enter your Password")
     hashlibpassword = hashlib.sha224(password).hexdigest()
-    return ID, name, password, hashlibpassword
+    return ID, username, password, hashlibpassword
 
-def insertorcheck(ID, gradesbreakdown, student_grades, name, password, hashlibpassword):
+def insertorcheck(ID, gradesbreakdown, student_grades, username, password, hashlibpassword):
     for key in student_grades:
         if ID == key:
-            x = changethegrades(ID, student_grades, name, password)
+            x = changethegrades(ID, student_grades, username, password)
             return x
-    y = insertthegrades(gradesbreakdown, ID, name, hashlibpassword)
+    y = insertthegrades(gradesbreakdown, ID, username, hashlibpassword)
     return y
 
 def checknumber(key):
@@ -51,25 +51,29 @@ def checknumber(key):
         return x
 
 
-def insertthegrades(gradesbreakdown, ID, name, hashlibpassword):
-    newID = {ID:{"User":{"name":name, "password":hashlibpassword},"grades":{}}}
+def insertthegrades(gradesbreakdown, ID, username, hashlibpassword):
+    newID = {ID:{"User":{"Username":username, "Password":hashlibpassword},"grades":{}}}
     for key in gradesbreakdown:
         print "The percentage for " + key + "  is  " + str((gradesbreakdown[key])) + "%"
         newID[ID]["grades"][key] = checknumber(key)
     return newID
 
-def changethegrades(ID, student_grades, name, password):
-    if student_grades[ID]["User"]["password"] == hashlib.sha224(password).hexdigest():
+def changethegrades(ID, student_grades, username, password):
+    if student_grades[ID]["User"]["Password"] == hashlib.sha224(password).hexdigest() and student_grades[ID]["User"]["Username"] == username:
         print "You are authorized"
         for key in student_grades[ID]["grades"]:
             print "your grade for " + str(key) + " is " + str(student_grades[ID]["grades"][key])
             x = str(raw_input("Do you want to change your grade type y for yes, n for no"))
             if x == "y":
                 student_grades[ID]["grades"][key] = checknumber(key)
-    else:
-        print "you are not authorized"
+    elif student_grades[ID]["User"]["Password"] != hashlib.sha224(password).hexdigest():
+        print "Wrong password"
         newpassword = raw_input("Please enter your Password again")
-        changethegrades(ID, student_grades, name, newpassword)
+        changethegrades(ID, student_grades, username, newpassword)
+    elif student_grades[ID]["User"]["Username"] != username:
+        print "Wrong username for " + "ID number:" + str(ID)
+        newusername = raw_input("Please enter your username again")
+        changethegrades(ID, student_grades, newusername, password)
     return student_grades
 
 
@@ -83,7 +87,7 @@ def finalgrade(gradesbreakdown, current_grades, ID):
 
 def printfinalgrades(convmatrix, fingrade, current_grades, ID):
     print "ID:"+ ID
-    print "Name:"+ current_grades[ID]["User"]["name"]
+    print "Username:"+ current_grades[ID]["User"]["Username"]
     for key in current_grades[ID]["grades"]:
         print "Your grade for " + str(key) + " is " + str(current_grades[ID]["grades"][key])
     for x in range(len(convmatrix)):
@@ -99,9 +103,9 @@ def saveGrades(student_grades, current_grades, ID):
 
 def main():
     student_grades = loadgradesfile()
-    ID, name, password, hashlibpassword = askfor_userinfo()
+    ID, username, password, hashlibpassword = askfor_userinfo()
     gradesbreakdown, convmatrix = loadgc_setup()
-    current_grades = insertorcheck(ID, gradesbreakdown, student_grades, name, password, hashlibpassword)
+    current_grades = insertorcheck(ID, gradesbreakdown, student_grades, username, password, hashlibpassword)
     saveGrades(student_grades, current_grades, ID)
     fingrade = finalgrade(gradesbreakdown, current_grades, ID)
     printfinalgrades(convmatrix, fingrade, current_grades, ID)

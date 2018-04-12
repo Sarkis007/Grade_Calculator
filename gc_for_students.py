@@ -21,21 +21,53 @@ def loadgradesfile():
             student_grade = json.load(data_file)
             return student_grade
 
-def askfor_userinfo():
-    ID = str(raw_input("Enter student ID"))
-    username = raw_input("Enter your username")
-    password = raw_input("Enter your Password")
-    hashlibpassword = hashlib.sha224(password).hexdigest()
-    return ID, username, password, hashlibpassword
+def askfor_userinfo(student_grades):
+    usertype = raw_input("are you a student or a teacher ?")
+    if usertype == "teacher" or usertype == "student":
+        ID = (str(raw_input("Enter your ID")))
+        username = raw_input("Enter your username")
+        password = raw_input("Enter your Password")
+        hashlibpassword = hashlib.sha224(password).hexdigest()
+        return ID, username, password, hashlibpassword, usertype
+    else:
+        print "invalid input please select 'student' or 'teacher"
+        askfor_userinfo(student_grades)
 
-def insertorcheck(ID, gradesbreakdown, student_grades, username, password, hashlibpassword):
+
+def checkforpassword(ID, username, password, hashlibpassword, student_grades):
     for key in student_grades:
         if ID == key:
-            x = changethegrades(ID, student_grades, username, password)
-            return x
-    y = insertthegrades(gradesbreakdown, ID, username, hashlibpassword)
-    return y
+            if student_grades[ID]["User"]["Password"] == hashlib.sha224(password).hexdigest() and student_grades[ID]["User"]["Username"] == username:
+                return ID, username, password, hashlibpassword
+            elif student_grades[ID]["User"]["Password"] != hashlib.sha224(password).hexdigest():
+                print "Wrong password"
+                newpassword = raw_input("Please enter your Password again")
+                checkforpassword(ID, username, newpassword, hashlibpassword, student_grades)
+            elif student_grades[ID]["User"]["Username"] != username:
+                print "Wrong username for " + "ID number:" + str(ID)
+                newusername = raw_input("Please enter your username again")
+                checkforpassword(ID, newusername, password, hashlibpassword, student_grades)
+    return ID, username, password, hashlibpassword
 
+def insertorcheck(ID, gradesbreakdown, student_grades, username, password, hashlibpassword, usertype):
+        if usertype == "teacher":
+            ID = str(raw_input("Enter student ID"))
+            for key in student_grades:
+                if ID == key:
+                    x = changethegrades(ID, student_grades, username, usertype)
+                    return x, ID
+            username = raw_input("create a username for the student")
+            password = raw_input("create a password for the student")
+            hashlibpassword = hashlib.sha224(password).hexdigest()
+            y = insertthegrades(gradesbreakdown, ID, username, hashlibpassword)
+            return y, ID
+        else:
+            for key in student_grades:
+                if ID == key:
+                    x = changethegrades(ID, student_grades, username, usertype)
+                    return x, ID
+            y = insertthegrades(gradesbreakdown, ID, username, hashlibpassword)
+            return y, ID
 def checknumber(key):
     try:
         x = input("What is your Current Grade for " + key + " Please insert -1 if you don't have a grade yet")
@@ -58,22 +90,14 @@ def insertthegrades(gradesbreakdown, ID, username, hashlibpassword):
         newID[ID]["grades"][key] = checknumber(key)
     return newID
 
-def changethegrades(ID, student_grades, username, password):
-    if student_grades[ID]["User"]["Password"] == hashlib.sha224(password).hexdigest() and student_grades[ID]["User"]["Username"] == username:
+def changethegrades(ID, student_grades, username, usertype):
+    if student_grades[ID]["User"]["Username"] == username or usertype == "teacher":
         print "You are authorized"
         for key in student_grades[ID]["grades"]:
             print "your grade for " + str(key) + " is " + str(student_grades[ID]["grades"][key])
             x = str(raw_input("Do you want to change your grade type y for yes, n for no"))
             if x == "y":
                 student_grades[ID]["grades"][key] = checknumber(key)
-    elif student_grades[ID]["User"]["Password"] != hashlib.sha224(password).hexdigest():
-        print "Wrong password"
-        newpassword = raw_input("Please enter your Password again")
-        changethegrades(ID, student_grades, username, newpassword)
-    elif student_grades[ID]["User"]["Username"] != username:
-        print "Wrong username for " + "ID number:" + str(ID)
-        newusername = raw_input("Please enter your username again")
-        changethegrades(ID, student_grades, newusername, password)
     return student_grades
 
 
@@ -89,10 +113,10 @@ def printfinalgrades(convmatrix, fingrade, current_grades, ID):
     print "ID:"+ ID
     print "Username:"+ current_grades[ID]["User"]["Username"]
     for key in current_grades[ID]["grades"]:
-        print "Your grade for " + str(key) + " is " + str(current_grades[ID]["grades"][key])
+        print str(key) + "'s grade for " + str(current_grades[ID]["User"]["Username"])  + " is " + str(current_grades[ID]["grades"][key])
     for x in range(len(convmatrix)):
         if int(convmatrix[x]["max"]) >= int(fingrade) and int(convmatrix[x]["min"]) <= int(fingrade):
-            print "your final grade is " + str(fingrade) + " your mark is " + str(convmatrix[x]["mark"])
+            print "Final grade is " + str(fingrade) + " Final mark is " + str(convmatrix[x]["mark"])
 
 def saveGrades(student_grades, current_grades, ID):
     student_grades[ID] = current_grades[ID]
@@ -103,9 +127,10 @@ def saveGrades(student_grades, current_grades, ID):
 
 def main():
     student_grades = loadgradesfile()
-    ID, username, password, hashlibpassword = askfor_userinfo()
     gradesbreakdown, convmatrix = loadgc_setup()
-    current_grades = insertorcheck(ID, gradesbreakdown, student_grades, username, password, hashlibpassword)
+    ID, username, password, hashlibpassword, usertype = askfor_userinfo(student_grades)
+    checkforpassword(ID, username, password, hashlibpassword, student_grades)
+    current_grades, ID = insertorcheck(ID, gradesbreakdown, student_grades, username, password, hashlibpassword, usertype)
     saveGrades(student_grades, current_grades, ID)
     fingrade = finalgrade(gradesbreakdown, current_grades, ID)
     printfinalgrades(convmatrix, fingrade, current_grades, ID)

@@ -60,7 +60,10 @@ def checkforpassword(ID, username, password, hashlibpassword, student_grades, us
 
 def insertorcheck(ID, gradesbreakdown, student_grades, username, hashlibpassword, usertype):
         if usertype == "teacher":
-            ID = str(raw_input("Enter student ID"))
+            print "The students IDs are the following"
+            for key in student_grades["student"]:
+                print str(key) + " - " + str(student_grades["student"][key]["User"]["Username"])
+            ID = str(raw_input("Please select one of the student IDs above or insert a new ID for a new student"))
             for key in student_grades["student"]:
                 if ID == key:
                     x = changethegrades(ID, student_grades, username, usertype)
@@ -103,7 +106,7 @@ def changethegrades(ID, student_grades, username, usertype):
     if str(student_grades["student"][ID]["User"]["Username"]) == str(username) or usertype == "teacher":
         print "You are authorized"
         for key in student_grades["student"][ID]["grades"]:
-            print "grade for " + str(key) + " is " + str(student_grades["student"][ID]["grades"][key])
+            print "The grade for " + str(key) + " is " + str(student_grades["student"][ID]["grades"][key])
             x = str(raw_input("Do you want to change the grade?   type y for yes, n for no"))
             if x == "y":
                 student_grades["student"][ID]["grades"][key] = checknumber(key)

@@ -64,6 +64,9 @@ def insertorcheck(ID, gradesbreakdown, student_grades, username, hashlibpassword
             for key in student_grades["student"]:
                 print str(key) + " - " + str(student_grades["student"][key]["User"]["Username"])
             ID = str(raw_input("Please select one of the student IDs above or insert a new ID for a new student"))
+            for x in student_grades["student"][ID]["grades"]:
+                print "the grade for " + str(x) + " is " + str(student_grades["student"][ID]["grades"][x])
+
             for key in student_grades["student"]:
                 if ID == key:
                     x = changethegrades(ID, student_grades, username, usertype)
@@ -82,7 +85,7 @@ def insertorcheck(ID, gradesbreakdown, student_grades, username, hashlibpassword
             return y, ID
 def checknumber(key):
     try:
-        x = input("What is Current Grade for " + key + " Please insert -1 if there is no grade yet ")
+        x = input("What is the current Grade for " + key + " Please insert -1 if there is no grade yet ")
         if x <= 100 and x >= -1:
             return x
         else:
